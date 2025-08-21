@@ -1,19 +1,15 @@
 from fastapi import FastAPI
-from pydantic import BaseModel
-import joblib
-from pathlib import Path
-
 from fastapi.responses import Response
+from pydantic import BaseModel
+import joblib, time
 from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
-import time
 
 app = FastAPI(title="Sentiment Service", version="0.1.0")
+model = joblib.load("models/model.joblib")
 
-MODEL_PATH = Path("models/model.joblib")
-if not MODEL_PATH.exists():
-    raise RuntimeError("models/model.joblib not found. Run: python scripts/train.py")
-
-model = joblib.load(MODEL_PATH)
+# --- Metrics ---
+REQS = Counter("inference_requests_total", "Total inference requests")
+LAT  = Histogram("inference_latency_seconds", "Inference latency seconds")
 
 class InReq(BaseModel):
     text: str
@@ -21,9 +17,6 @@ class InReq(BaseModel):
 @app.get("/health")
 def health():
     return {"status": "ok", "version": app.version}
-
-REQS = Counter("inference_requests_total", "Total inference requests")
-LAT  = Histogram("inference_latency_seconds", "Inference latency seconds")
 
 @app.post("/predict")
 def predict(req: InReq):

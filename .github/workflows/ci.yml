@@ -32,9 +32,9 @@ jobs:
 
       - name: Set image name (lowercase)
         run: |
-          OWNER_LC="${GITHUB_REPOSITORY_OWNER,,}"
-          REPO_NAME="$(basename "$GITHUB_REPOSITORY")"
-          echo "IMAGE=ghcr.io/${OWNER_LC}/${REPO_NAME}/sentiment-api" >> $GITHUB_ENV
+          OWNER_LC="${GITHUB_REPOSITORY_OWNER,,}"           # -> davidthehero
+          REPO_LC="$(basename "$GITHUB_REPOSITORY" | tr '[:upper:]' '[:lower:]')"  # -> sentiment-ci-cd
+          echo "IMAGE=ghcr.io/${OWNER_LC}/${REPO_LC}/sentiment-api" >> $GITHUB_ENV
 
       - name: Log in to GHCR (GITHUB_TOKEN)
         if: github.ref == 'refs/heads/main'
