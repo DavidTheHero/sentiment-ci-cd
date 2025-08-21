@@ -44,9 +44,22 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build & (push on main)
+      - name: Build & (push on main) multi-arch
         uses: docker/build-push-action@v6
         with:
           context: .
-          push: ${{ github.ref == 'refs/heads/main' }}
-          tags: ${{ env.IMAGE }}:latest
+          push: ${{ github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/') }}
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ${{ env.IMAGE }}:latest
+            ${{ startsWith(github.ref, 'refs/tags/') && format('{0}:{1}', env.IMAGE, github.ref_name) || '' }}
+
+      - name: Smoke test container
+        if: github.ref == 'refs/heads/main'
+        run: |
+          docker run -d --rm -p 8000:8000 --name api ${{ env.IMAGE }}:latest
+          for i in {1..10}; do
+            curl -fsS localhost:8000/health && break || sleep 1
+          done
+          curl -fsS localhost:8000/health | jq .
+          docker rm -f api
