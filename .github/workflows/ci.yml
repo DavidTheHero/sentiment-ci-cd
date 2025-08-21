@@ -26,8 +26,10 @@ jobs:
       - name: Run tests
         run: pytest -q
 
-      - name: Set image name
-        run: echo "IMAGE=ghcr.io/${{ github.repository }}/sentiment-api" >> $GITHUB_ENV
+      - name: Set image name (lowercase)
+        run: |
+          IMAGE="ghcr.io/${GITHUB_REPOSITORY,,}/sentiment-api"
+          echo "IMAGE=$IMAGE" >> $GITHUB_ENV
 
       - name: Log in to GHCR
         if: github.ref == 'refs/heads/main'
