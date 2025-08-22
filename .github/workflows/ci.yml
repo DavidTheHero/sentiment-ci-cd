@@ -58,12 +58,13 @@ jobs:
           platforms: linux/amd64,linux/arm64
           tags: ${{ env.IMAGE }}:latest
 
-      - name: Smoke test container
+      - name: Smoke test container (run image & check /health)
         if: github.ref == 'refs/heads/main'
         run: |
           docker run -d --rm -p 8000:8000 --name api ${{ env.IMAGE }}:latest
+          # wait for boot (retry up to ~10s)
           for i in {1..10}; do
             curl -fsS localhost:8000/health && break || sleep 1
           done
-          curl -fsS localhost:8000/health | jq .
+          curl -fsS localhost:8000/health
           docker rm -f api
